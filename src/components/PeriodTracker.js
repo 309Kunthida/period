@@ -27,7 +27,7 @@ const PeriodTracker = () => {
 
   return (
     <div className="p-5">
-      <h2 className="text-2xl font-bold">Period Tracker</h2>
+      
 
       {/* Start Date input */}
       <div className="mt-4">

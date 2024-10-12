@@ -1,29 +1,26 @@
 import React, { useState } from 'react';
 
-const SaveButton = ({ onCycleDatesChange }) => {
-  const [cycleDates, setCycleDates] = useState([]); // เก็บวันที่บันทึกรอบเดือน
-
-  // ฟังก์ชันบันทึกรอบเดือน และบันทึกอัตโนมัติ 5 วัน
+const SaveButton = ({ selectedDate, onCycleDatesChange, onPredictedDatesChange }) => {
   const handleLogCycle = () => {
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0]; // เปลี่ยนวันที่เป็น string
+    const today = new Date(selectedDate);
+    const todayString = today.getDate(); // บันทึกวันที่ปัจจุบัน
 
     // คำนวณวันถัดไป 5 วันหลังจากวันบันทึก
-    const newCycleDates = [todayString]; // เริ่มต้นจากวันที่ปัจจุบัน
+    const predictedDates = [];
     for (let i = 1; i <= 5; i++) {
       const nextDate = new Date(today);
       nextDate.setDate(today.getDate() + i);
-      newCycleDates.push(nextDate.toISOString().split('T')[0]); // เพิ่มวันที่เข้าไป
+      predictedDates.push(nextDate.getDate()); // เพิ่มวันที่คาดการณ์เข้าไป
     }
 
-    setCycleDates(newCycleDates); // เก็บวันที่ทั้งหมดที่บันทึกใน state
-    onCycleDatesChange(newCycleDates); // ส่งวันที่ไปยัง HomePage.js
+    onCycleDatesChange(todayString); // ส่งวันที่บันทึกกลับไปที่ HomePage
+    onPredictedDatesChange(predictedDates); // ส่งวันที่คาดการณ์กลับไปที่ HomePage
   };
 
   return (
     <button
       className="bg-pink-500 text-white py-2 px-4 rounded-full"
-      onClick={handleLogCycle}  // เมื่อกดปุ่มจะเรียกฟังก์ชัน handleLogCycle
+      onClick={handleLogCycle}
     >
       บันทึกรอบประจำเดือน
     </button>
