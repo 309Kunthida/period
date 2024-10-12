@@ -1,0 +1,38 @@
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* กำหนด 7 คอลัมน์สำหรับปฏิทิน */
+    gap: 10px;
+  }
+  
+  .calendar-day {
+    padding: 10px;
+    text-align: center;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    margin: 0 auto;
+    background-color: white; /* สีพื้นหลัง */
+  }
+  .bg-gray-300 {
+    background-color: #e2e8f0; /* สีเทาอ่อน */
+  }
+  
+  .bg-pink-500 {
+    background-color: #ff69b4; /* สีชมพู */
+  }
+  
+  .text-white {
+    color: white;
+  }
+  
+  .border-pink-500 {
+    border: 2px dashed #ff69b4; /* เส้นประสีชมพู */
+  }
+  
+  .calendar-day.current-day {
+    background-color: #d3d3d3; /* สีเทาอ่อน */
+    color: black;
+    border-radius: 50%;
+  }
+  
