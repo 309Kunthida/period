@@ -19,26 +19,48 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
 
   // ฟังก์ชันคำนวณวันที่ประจำเดือนถัดไป
   useEffect(() => {
-    const today = new Date();
-    const nextDate = new Date(lastPeriodDate);
-    nextDate.setDate(lastPeriodDate.getDate() + cycleLength); // เพิ่มจำนวนวันตามรอบเดือนที่ตั้งไว้
+    // ฟังก์ชันคำนวณจำนวนวันที่เหลือจนถึงประจำเดือนครั้งถัดไป
+    const calculateDaysUntilNextPeriod = () => {
+      if (lastPeriodDate instanceof Date && !isNaN(lastPeriodDate)) { // ตรวจสอบว่าเป็น Date หรือไม่
+        const today = new Date();
+        const nextDate = new Date(lastPeriodDate); // ใช้ lastPeriodDate ที่เป็น Date
+        nextDate.setDate(lastPeriodDate.getDate() + cycleLength); // เพิ่มจำนวนวันตามรอบเดือนที่ตั้งไว้
 
-    const daysUntilNext = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24)); // คำนวณจำนวนวันที่เหลือ
+        // ตรวจสอบว่าคำนวณวันที่ถูกต้อง
+        console.log("Last Period Date:", lastPeriodDate.toLocaleDateString());
+        console.log("Next Period Date:", nextDate.toLocaleDateString());
 
-    if (daysUntilNext >= 0) {
-      setDaysUntilNextPeriod(daysUntilNext);
-    } else {
-      setDaysUntilNextPeriod(0); // ถ้าเลยวันแล้วให้แสดง 0 วัน
-    }
+        const daysUntilNext = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24)); // คำนวณจำนวนวันที่เหลือ
 
-    setNextPeriodDate(nextDate); // อัปเดต nextPeriodDate ที่คำนวณได้
-  }, [lastPeriodDate, cycleLength]);
+        if (daysUntilNext >= 0) {
+          setDaysUntilNextPeriod(daysUntilNext);
+        } else {
+          setDaysUntilNextPeriod(0); // ถ้าเลยวันแล้วให้แสดง 0 วัน
+        }
+
+        setNextPeriodDate(nextDate); // อัปเดต nextPeriodDate ที่คำนวณได้
+      } else {
+        console.error("lastPeriodDate is not a valid Date");
+      }
+    };
+
+    // เรียกใช้ฟังก์ชันคำนวณครั้งแรกและทุกครั้งที่ `lastPeriodDate` หรือ `cycleLength` เปลี่ยนแปลง
+    calculateDaysUntilNextPeriod();
+
+  }, [lastPeriodDate, cycleLength]); // ตรวจสอบการเปลี่ยนแปลงของ lastPeriodDate และ cycleLength
 
   const handleLogSymptoms = () => setShowSymptomForm(true);
 
   const handleLogCycle = (date) => {
-    setCycleDates([date]);
-    setLoggedDates([date]); // บันทึกวันที่ที่เลือกล่าสุดเท่านั้น
+    // อัปเดต lastPeriodDate เมื่อมีการบันทึกวันที่ประจำเดือนใหม่
+    const selectedDate = new Date(date);
+    if (!isNaN(selectedDate.getTime())) {
+      setLastPeriodDate(selectedDate); // อัปเดตวันที่ที่เลือกล่าสุด
+      setCycleDates([selectedDate]);
+      setLoggedDates([selectedDate]); // บันทึกวันที่ที่เลือกล่าสุดเท่านั้น
+    } else {
+      console.error("Invalid date selected");
+    }
   };
 
   const handlePredictedDates = (dates) => {
@@ -123,7 +145,7 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
       {/* แสดงจำนวนวันที่เหลือจนถึงประจำเดือนครั้งถัดไป */}
       <div>
         <p>ประจำเดือนจะมาในอีก {daysUntilNextPeriod} วัน</p>
-        <p>คาดการณ์วันประจำเดือนครั้งถัดไป: {nextPeriodDate && nextPeriodDate.toLocaleDateString()}</p>
+        <p>คาดการณ์วันประจำเดือนครั้งถัดไป: {nextPeriodDate && nextPeriodDate.toLocaleDateString('th-TH')}</p>
         <label>
           เลือกรอบเดือน (วัน):
           <input type="number" value={cycleLength} onChange={handleCycleLengthChange} />
@@ -181,15 +203,6 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
           <button className="save-symptom-button" onClick={handleSaveSymptoms}>
             บันทึกอาการ
           </button>
-        </div>
-      )}
-      {/* สรุปอาการของวันที่ที่เลือก */}
-      {dailySymptoms[selectedDate] && (
-        <div className="symptom-summary-container">
-          <h3 className="symptom-summary-title">สรุปอาการของคุณ</h3>
-          <p className="symptom-summary-item">ปริมาณประจำเดือน: {dailySymptoms[selectedDate].flow || 'ไม่ได้ระบุ'}</p>
-          <p className="symptom-summary-item">อารมณ์: {dailySymptoms[selectedDate].mood.join(', ') || 'ไม่ได้ระบุ'}</p>
-          <p className="symptom-summary-item">อาการ: {dailySymptoms[selectedDate].symptoms.join(', ') || 'ไม่ได้ระบุ'}</p>
         </div>
       )}
 
