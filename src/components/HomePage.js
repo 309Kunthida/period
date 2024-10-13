@@ -18,7 +18,7 @@ const HomePage = () => {
   const [nextPeriodDate, setNextPeriodDate] = useState(null); // บันทึกวันที่ประจำเดือนครั้งถัดไป
   const [lastPeriodDay, setLastPeriodDay] = useState(null); // เก็บวันสุดท้ายของการเป็นประจำเดือน
 
-  // ฟังก์ชันจัดการการเปลี่ยนแปลงวันที่
+
 // ฟังก์ชันจัดการการเปลี่ยนแปลงวันที่
 const handleDateChange = (newDate) => {
   setSelectedDate(newDate);
@@ -41,46 +41,40 @@ const handleDateChange = (newDate) => {
   // ฟังก์ชันสำหรับบันทึกวันที่ที่เลือก
   const handleLogCycle = (date) => {
     const dateString = date.toDateString();
-  
-    // ตรวจสอบว่าเคยบันทึกวันที่นี้ไปแล้วหรือยัง
+    
     if (!cycleDates.some(cycleDate => cycleDate.toDateString() === dateString)) {
-      // ตรวจสอบว่าการบันทึกวันใหม่ต่อเนื่องจากวันล่าสุดหรือไม่
       if (cycleDates.length > 0) {
-        const lastLoggedDate = new Date(cycleDates[cycleDates.length - 1]); // เอาวันสุดท้ายที่บันทึก
+        const lastLoggedDate = new Date(cycleDates[cycleDates.length - 1]);
         const diffDays = Math.ceil(Math.abs(date - lastLoggedDate) / (1000 * 60 * 60 * 24));
-  
+    
         if (diffDays > 1) {
-          // ถ้าไม่ต่อเนื่องให้รีเซ็ตข้อมูลและคำนวณใหม่
-          setCycleDates([date]); // รีเซ็ตเป็นวันใหม่ที่เลือก
-          setCurrentDayOfPeriod(1); // รีเซ็ตเป็นวันแรกของรอบใหม่
-          setIsFirstDay(true); // เป็นวันแรกของรอบใหม่
-          const calculatedNextPeriod = calculateNextPeriod(date);
-          setNextPeriodDate(calculatedNextPeriod);
-          calculatePredictedDates(date);
+          // ถ้าระยะห่างมากกว่า 1 วัน ให้รีเซ็ตข้อมูล
+          setCycleDates([date]);
+          setCurrentDayOfPeriod(1);
+          setIsFirstDay(true);
         } else {
-          // ถ้าต่อเนื่องให้เพิ่มวันใหม่เข้าไปในรอบประจำเดือน
+          // ถ้าต่อเนื่อง ให้บันทึกวันใหม่และนับจำนวนวันเพิ่ม
           const updatedCycleDates = [...cycleDates, date];
           setCycleDates(updatedCycleDates);
-          localStorage.setItem('cycleDates', JSON.stringify(updatedCycleDates));
-          setCurrentDayOfPeriod(cycleDates.length + 1);
-          setIsFirstDay(false);
+          setCurrentDayOfPeriod(updatedCycleDates.length);
+  
+          // คำนวณวันที่ประจำเดือนครั้งถัดไปจากวันที่ล่าสุดที่บันทึก
+          const calculatedNextPeriod = calculateNextPeriod(date);
+          setNextPeriodDate(calculatedNextPeriod);
         }
       } else {
-        // กรณีที่ยังไม่มีการบันทึกวันใดๆ
+        // กรณีบันทึกวันแรก
         const updatedCycleDates = [date];
         setCycleDates(updatedCycleDates);
-        localStorage.setItem('cycleDates', JSON.stringify(updatedCycleDates));
         setCurrentDayOfPeriod(1);
         setIsFirstDay(false);
-        const calculatedNextPeriod = calculateNextPeriod(date);
-        setNextPeriodDate(calculatedNextPeriod);
-        calculatePredictedDates(date);
+        calculatePredictedDates(date); // คำนวณวันคาดการณ์ในครั้งแรกเท่านั้น
       }
       setIsSaved(true);
-    } else {
-    
     }
   };
+  
+  
   // ฟังก์ชันคำนวณวันสุดท้ายของการมีประจำเดือน
   const calculateLastPeriodDay = (startDate) => {
     const periodLength = 5; // กำหนดให้ประจำเดือนอยู่ 5 วัน
@@ -89,14 +83,13 @@ const handleDateChange = (newDate) => {
     return lastDay;
   };
 
-  // ฟังก์ชันคำนวณวันที่ประจำเดือนจะมาอีก
-  const calculateNextPeriod = (startDate) => {
-    const cycleLength = 28; // รอบประจำเดือนเฉลี่ย 28 วัน
-    const lastPeriodDay = calculateLastPeriodDay(startDate); // เอาวันสุดท้ายของประจำเดือน (วันที่ 5)
-    const nextPeriodDate = new Date(lastPeriodDay);
-    nextPeriodDate.setDate(lastPeriodDay.getDate() + 1 + cycleLength); // บวก 1 เพื่อเริ่มจากวันที่ 6 แล้วเพิ่ม 28 วันสำหรับรอบถัดไป
-    return nextPeriodDate;
-  };
+  // ฟังก์ชันคำนวณวันที่ประจำเดือนครั้งถัดไป
+const calculateNextPeriod = (startDate) => {
+  const cycleLength = 28; // รอบประจำเดือนเฉลี่ย 28 วัน
+  const nextPeriodDate = new Date(startDate); // นับจากวันที่ล่าสุดที่บันทึก
+  nextPeriodDate.setDate(startDate.getDate() + cycleLength); // บวก 28 วันเพื่อหาวันถัดไป
+  return nextPeriodDate;
+};
 
   // ฟังก์ชันคำนวณวันคาดการณ์ 5 วันหลังจากวันแรก
   const calculatePredictedDates = (startDate) => {
