@@ -3,18 +3,26 @@ import React from 'react';
 const Calendar = ({ selectedDate, handleDateChange, loggedDates, predictedDates }) => {
   const selectedDay = selectedDate.getDate();
 
+  // ฟังก์ชันสำหรับคำนวณจำนวนวันในเดือนที่เลือก
+  const daysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  // หาจำนวนวันในเดือนปัจจุบันของ selectedDate
+  const totalDays = daysInMonth(selectedDate.getMonth(), selectedDate.getFullYear());
+
   const onDateClick = (day) => {
     const newDate = new Date(selectedDate);
     newDate.setDate(day);
-    handleDateChange(newDate);
+    handleDateChange(newDate); // อัปเดตวันที่ที่เลือกให้ตรงกับ state หลัก
   };
 
   return (
     <div className="calendar-grid">
-      {Array.from({ length: 31 }, (_, index) => {
+      {Array.from({ length: totalDays }, (_, index) => {
         const day = index + 1;
-        const isLogged = loggedDates.includes(day); // เช็คว่าวันที่บันทึกแล้วหรือไม่
-        const isPredicted = predictedDates.includes(day); // เช็คว่าวันที่คาดการณ์หรือไม่
+        const isLogged = loggedDates.includes(day);
+        const isPredicted = predictedDates.includes(day);
 
         return (
           <div

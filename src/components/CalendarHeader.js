@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'; 
+import React, { useEffect, useRef, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { addMonths } from 'date-fns';
@@ -15,7 +15,6 @@ const CalendarHeader = ({ selectedDate, handleDateChange }) => {
     return () => clearInterval(interval);
   }, [handleDateChange]);
 
-  // ปิดปฏิทินเมื่อคลิกนอกพื้นที่
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (datepickerRef.current && !datepickerRef.current.contains(event.target)) {
@@ -52,8 +51,8 @@ const CalendarHeader = ({ selectedDate, handleDateChange }) => {
             <DatePicker
               selected={selectedDate}
               onChange={(date) => {
-                handleDateChange(date);
-                setIsOpen(false); // ปิดปฏิทินหลังจากเลือกวัน
+                handleDateChange(date); // อัปเดตวันที่ที่เลือก
+                setIsOpen(false);
               }}
               maxDate={addMonths(today, 12)}
               dateFormat="dd/MM/yyyy"

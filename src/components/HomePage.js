@@ -5,35 +5,42 @@ import './calendar.css';
 import './homePage.css';
 
 const HomePage = ({ selectedDate, handleDateChange }) => {
-  const [nextPeriod, setNextPeriod] = useState();
+  const [lastPeriodDate, setLastPeriodDate] = useState(new Date(2024, 8, 20)); // วันที่เริ่มต้นประจำเดือนล่าสุด (20 กันยายน 2567)
+  const [cycleLength, setCycleLength] = useState(28); // รอบเดือนโดยเฉลี่ยคือ 28 วัน
+  const [nextPeriodDate, setNextPeriodDate] = useState(null); // วันที่คาดการณ์ว่าจะเป็นประจำเดือนถัดไป
+  const [daysUntilNextPeriod, setDaysUntilNextPeriod] = useState(0);
   const [cycleDates, setCycleDates] = useState([]);
   const [dailySymptoms, setDailySymptoms] = useState({});
   const [showSymptomForm, setShowSymptomForm] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedSymptoms, setSelectedSymptoms] = useState({ flow: '', mood: [], symptoms: [] });
-  
   const [loggedDates, setLoggedDates] = useState([]); // เก็บวันที่บันทึก
   const [predictedDates, setPredictedDates] = useState([]); // เก็บวันที่คาดการณ์
 
+  // ฟังก์ชันคำนวณวันที่ประจำเดือนถัดไป
   useEffect(() => {
-    // ดึงข้อมูลอาการของวันที่ที่เลือก หากมีข้อมูลอยู่ใน dailySymptoms
-    if (dailySymptoms[selectedDate]) {
-      setSelectedSymptoms(dailySymptoms[selectedDate]);
+    const today = new Date();
+    const nextDate = new Date(lastPeriodDate);
+    nextDate.setDate(lastPeriodDate.getDate() + cycleLength); // เพิ่มจำนวนวันตามรอบเดือนที่ตั้งไว้
+
+    const daysUntilNext = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24)); // คำนวณจำนวนวันที่เหลือ
+
+    if (daysUntilNext >= 0) {
+      setDaysUntilNextPeriod(daysUntilNext);
     } else {
-      // ถ้าไม่มีข้อมูลอาการ ให้รีเซ็ตเป็นค่าว่าง
-      setSelectedSymptoms({ flow: '', mood: [], symptoms: [] });
+      setDaysUntilNextPeriod(0); // ถ้าเลยวันแล้วให้แสดง 0 วัน
     }
-  }, [selectedDate, dailySymptoms]);
+
+    setNextPeriodDate(nextDate); // อัปเดต nextPeriodDate ที่คำนวณได้
+  }, [lastPeriodDate, cycleLength]);
 
   const handleLogSymptoms = () => setShowSymptomForm(true);
 
   const handleLogCycle = (date) => {
-    // ลบวันที่ทั้งหมดที่เคยบันทึกไว้ก่อน
     setCycleDates([date]);
     setLoggedDates([date]); // บันทึกวันที่ที่เลือกล่าสุดเท่านั้น
   };
-  
-  
+
   const handlePredictedDates = (dates) => {
     setPredictedDates(dates); // บันทึกวันที่คาดการณ์
   };
@@ -55,6 +62,11 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
     setTimeout(() => setShowPopup(false), 2000);
   };
 
+  // ฟังก์ชันสำหรับเปลี่ยนรอบเดือน
+  const handleCycleLengthChange = (e) => {
+    setCycleLength(parseInt(e.target.value));
+  };
+
   return (
     <div className="home-page-container">
       {/* Header */}
@@ -64,7 +76,9 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
 
       <div className="period-info-container">
         <div className="period-info-title">ประจำเดือนจะมาใน</div>
-        <div className="period-info-days">{nextPeriod} วัน</div>
+        <div className="period-info-days" style={{ color: '#ec4899' }}>
+          {daysUntilNextPeriod} วัน
+        </div>
         <div className="pregnancy-chance">โอกาสตั้งครรภ์น้อย</div>
       </div>
 
@@ -93,8 +107,6 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
         />
       </div>
 
-      
-
       <div className="daily-insights-container">
         <div className="daily-insights-title">ข้อมูลเชิงลึกประจำวันของฉัน - {selectedDate.toLocaleDateString('th-TH')}</div>
         <div className="insights-grid">
@@ -106,6 +118,16 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
             <div>ข้อมูลเชิงลึกเฉพาะบุคคลสำหรับวันนี้</div>
           </div>
         </div>
+      </div>
+
+      {/* แสดงจำนวนวันที่เหลือจนถึงประจำเดือนครั้งถัดไป */}
+      <div>
+        <p>ประจำเดือนจะมาในอีก {daysUntilNextPeriod} วัน</p>
+        <p>คาดการณ์วันประจำเดือนครั้งถัดไป: {nextPeriodDate && nextPeriodDate.toLocaleDateString()}</p>
+        <label>
+          เลือกรอบเดือน (วัน):
+          <input type="number" value={cycleLength} onChange={handleCycleLengthChange} />
+        </label>
       </div>
 
       {/* Show symptom selection form */}
@@ -161,7 +183,6 @@ const HomePage = ({ selectedDate, handleDateChange }) => {
           </button>
         </div>
       )}
-
       {/* สรุปอาการของวันที่ที่เลือก */}
       {dailySymptoms[selectedDate] && (
         <div className="symptom-summary-container">

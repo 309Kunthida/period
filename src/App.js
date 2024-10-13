@@ -22,7 +22,6 @@ function App() {
       <Header />
       <CalendarHeader selectedDate={selectedDate} handleDateChange={handleDateChange} />
 
-      <h1 className="text-3xl font-bold text-center mt-5">Period Tracker</h1>
 
       {!showPeriodTracker && (
         <HomePage selectedDate={selectedDate} handleDateChange={handleDateChange} />
