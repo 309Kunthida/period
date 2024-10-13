@@ -166,3 +166,60 @@
     font-size: 1.125rem;
     font-weight: bold;
   }
+  .period-info-title {
+    color: #FF007F;
+    font-weight: bold;
+  }
+  
+  .period-info-title-large {
+    font-size: 28px;
+  }
+  
+  .period-info-title-small {
+    font-size: 24px;
+  }
+  
+  .period-info-days {
+    color: #FF007F;
+    font-size: 14px;
+  }
+  
+  .save-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .calendar-day {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  
+  .bg-gray-300 {
+    background-color: #e2e8f0;
+  }
+  
+  /* วงกลมสำหรับวันที่บันทึก */
+  .circle-logged {
+    background-color: #FF007F;
+    color: white;
+    border-radius: 50%;
+  }
+  
+  /* วงกลมเส้นปะสำหรับวันที่คาดการณ์ */
+  .circle-predicted {
+    border: 2px dashed #FF007F;
+    color: #FF007F;
+    border-radius: 50%;
+  }
