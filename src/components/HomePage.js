@@ -14,28 +14,30 @@ const HomePage = () => {
   const [selectedSymptoms, setSelectedSymptoms] = useState({ flow: '', mood: [], symptoms: [] });
   const [currentDayOfPeriod, setCurrentDayOfPeriod] = useState(1);
   const [isSaved, setIsSaved] = useState(false);
-  const [isFirstDay, setIsFirstDay] = useState(true);
   const [nextPeriodDate, setNextPeriodDate] = useState(null);
-  const [lastPeriodDay, setLastPeriodDay] = useState(null);
 
   // ฟังก์ชันจัดการการเปลี่ยนแปลงวันที่
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
-
-    // ตรวจสอบว่ามีการบันทึกวันที่นี้แล้วหรือไม่
+  
+    // รีเซ็ต selectedSymptoms เมื่อมีการเปลี่ยนวันที่
+    setSelectedSymptoms({ flow: '', mood: [], symptoms: [] });
+  
     const existingIndex = cycleDates.findIndex(
       (loggedDate) => loggedDate.getTime() === newDate.getTime()
     );
-
+  
     if (existingIndex !== -1) {
-      // ถ้ามีวันที่นี้ใน cycleDates ให้แสดงข้อความวันที่ตามลำดับที่บันทึกไว้
       setCurrentDayOfPeriod(existingIndex + 1);
-      setIsSaved(true); // แสดงข้อมูลว่าบันทึกแล้ว
+      setIsSaved(true);
     } else {
-      // ถ้าไม่มีวันที่นี้ให้รีเซ็ตสถานะการบันทึก
       setIsSaved(false);
     }
   };
+  
+
+  // ฟังก์ชันตรวจสอบว่าวันที่ที่เลือกเป็นวันที่ประจำเดือนหรือไม่
+  const isPeriodDay = predictedDates.some(predictedDate => predictedDate.toDateString() === selectedDate.toDateString());
 
   // ฟังก์ชันสำหรับบันทึกวันที่ที่เลือก
   const handleLogCycle = (date) => {
@@ -47,98 +49,77 @@ const HomePage = () => {
         const diffDays = Math.ceil(Math.abs(date - lastLoggedDate) / (1000 * 60 * 60 * 24));
 
         if (diffDays === 1) {
-          // ถ้าต่อเนื่อง ให้บันทึกวันใหม่และนับจำนวนวันเพิ่ม
           const updatedCycleDates = [...cycleDates, date];
           setCycleDates(updatedCycleDates);
-          setCurrentDayOfPeriod(updatedCycleDates.length); // นับจำนวนวันทั้งหมดที่บันทึก
-
-          // คำนวณวันที่ประจำเดือนครั้งถัดไปจากวันที่ล่าสุดที่บันทึก
+          setCurrentDayOfPeriod(updatedCycleDates.length);
           const calculatedNextPeriod = calculateNextPeriod(date);
           setNextPeriodDate(calculatedNextPeriod);
         } else if (diffDays > 1) {
-          // ถ้าห่างจากวันสุดท้ายมากกว่า 1 วัน ให้รีเซ็ตข้อมูล
           setCycleDates([date]);
-          setCurrentDayOfPeriod(1); // เริ่มนับใหม่
-          setIsFirstDay(true);
+          setCurrentDayOfPeriod(1);
         }
       } else {
-        // กรณีบันทึกวันแรก
         const updatedCycleDates = [date];
         setCycleDates(updatedCycleDates);
-        setCurrentDayOfPeriod(1); // ตั้งค่าเป็นวันแรก
-        setIsFirstDay(false);
-        calculatePredictedDates(date); // คำนวณวันคาดการณ์ในครั้งแรกเท่านั้น
+        setCurrentDayOfPeriod(1);
+        calculatePredictedDates(date);
       }
       setIsSaved(true);
     }
   };
 
-  // ฟังก์ชันคำนวณวันสุดท้ายของการมีประจำเดือน
-  const calculateLastPeriodDay = (startDate) => {
-    const periodLength = 5; // กำหนดให้ประจำเดือนอยู่ 5 วัน
-    const lastDay = new Date(startDate);
-    lastDay.setDate(startDate.getDate() + periodLength - 1); // วันสุดท้ายคือวันที่ 5 หลังจากวันแรก
-    return lastDay;
-  };
-
-  // ฟังก์ชันคำนวณวันที่ประจำเดือนครั้งถัดไป
+  // ฟังก์ชันคำนวณวันประจำเดือนถัดไป
   const calculateNextPeriod = (startDate) => {
-    const cycleLength = 28; // รอบประจำเดือนเฉลี่ย 28 วัน
-    const nextPeriodDate = new Date(startDate); // นับจากวันที่ล่าสุดที่บันทึก
-    nextPeriodDate.setDate(startDate.getDate() + cycleLength); // บวก 28 วันเพื่อหาวันถัดไป
+    const cycleLength = 28;
+    const nextPeriodDate = new Date(startDate);
+    nextPeriodDate.setDate(startDate.getDate() + cycleLength);
     return nextPeriodDate;
   };
 
-  // ฟังก์ชันคำนวณวันคาดการณ์ 5 วันหลังจากวันแรก
+  // ฟังก์ชันคำนวณวันคาดการณ์
   const calculatePredictedDates = (startDate) => {
     const predicted = [];
-    for (let i = 0; i < 5; i++) { // คำนวณ 5 วัน (รวมวันแรก)
+    for (let i = 0; i < 5; i++) {
       const predictedDate = new Date(startDate);
       predictedDate.setDate(startDate.getDate() + i);
       predicted.push(predictedDate);
     }
-    setPredictedDates(predicted); // บันทึกวันคาดการณ์ทั้ง 5 วัน
+    setPredictedDates(predicted);
   };
 
   // ฟังก์ชันคำนวณจำนวนวันที่เหลือจากวันที่เลือกไปถึงวันประจำเดือนรอบถัดไป
   const calculateDaysUntilNextPeriod = () => {
     if (!nextPeriodDate) return null;
-    const today = selectedDate || new Date(); // ใช้วันที่ที่เลือกจากผู้ใช้หรือวันที่ปัจจุบัน
+    const today = selectedDate || new Date();
     const diffTime = Math.abs(nextPeriodDate - today);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1; // แปลงเป็นจำนวนวัน
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays;
   };
 
+  // ฟังก์ชันรีเซ็ตข้อมูลรอบประจำเดือน
+  const handleReset = () => {
+    setCycleDates([]);
+    setPredictedDates([]);
+    setNextPeriodDate(null);
+    setIsSaved(false);
+    setCurrentDayOfPeriod(1);
+  };
+
   // ฟังก์ชันลบวันที่บันทึก
-const handleDeleteCycle = () => {
-  const updatedCycleDates = cycleDates.filter((loggedDate) => loggedDate.getTime() !== selectedDate.getTime());
-  setCycleDates(updatedCycleDates); // ลบวันออกจากรายการ
+  const handleDeleteCycle = () => {
+    const updatedCycleDates = cycleDates.filter((loggedDate) => loggedDate.getTime() !== selectedDate.getTime());
+    setCycleDates(updatedCycleDates);
 
-  // ถ้ามีวันที่บันทึกเหลืออยู่ ให้คำนวณจากวันที่บันทึกล่าสุด
-  if (updatedCycleDates.length > 0) {
-    const lastLoggedDate = updatedCycleDates[updatedCycleDates.length - 1];
-    const updatedNextPeriodDate = calculateNextPeriod(lastLoggedDate);
-    setNextPeriodDate(updatedNextPeriodDate);
+    if (updatedCycleDates.length > 0) {
+      const lastLoggedDate = updatedCycleDates[updatedCycleDates.length - 1];
+      const updatedNextPeriodDate = calculateNextPeriod(lastLoggedDate);
+      setNextPeriodDate(updatedNextPeriodDate);
+    } else {
+      setNextPeriodDate(null);
+    }
 
-  } else {
-    setNextPeriodDate(null); // ถ้าไม่มีวันที่เหลือ ให้รีเซ็ต
-  }
-
-  setIsSaved(false); // รีเซ็ตสถานะการบันทึก
-};
-
-const handleReset = () => {
-  setCycleDates([]);         // รีเซ็ตวันที่บันทึก
-  setPredictedDates([]);     // รีเซ็ตวันที่คาดการณ์
-  setNextPeriodDate(null);   // รีเซ็ตวันประจำเดือนครั้งถัดไป
-  setIsSaved(false);         // รีเซ็ตสถานะการบันทึก
-  setCurrentDayOfPeriod(1);  // รีเซ็ตวันที่ในรอบเดือน
-};
-
-
-
-  // ฟังก์ชันตรวจสอบว่าวันที่เลือกเป็นวันที่ประจำเดือนหรือไม่
-  const isPeriodDay = predictedDates.some(predictedDate => predictedDate.toDateString() === selectedDate.toDateString());
+    setIsSaved(false);
+  };
 
   const handleLogSymptoms = () => setShowSymptomForm(true);
 
@@ -185,12 +166,12 @@ const handleReset = () => {
           </>
         ) : (
           <>
-            {nextPeriodDate && !isPeriodDay && ( // ไม่แสดงข้อความนี้หากเป็นวันประจำเดือน
+            {nextPeriodDate && !isPeriodDay && (
               <div className="period-info-days">
                 ประจำเดือนจะมาอีกครั้งในวันที่ {formatThaiDate(nextPeriodDate)}
               </div>
             )}
-            {nextPeriodDate && !isPeriodDay && ( // ไม่แสดงจำนวนวันหากเป็นวันประจำเดือน
+            {nextPeriodDate && !isPeriodDay && (
               <div className="period-info-days">
                 ครั้งถัดไปจะมาอีกใน {calculateDaysUntilNextPeriod()} วัน
               </div>
@@ -225,12 +206,15 @@ const handleReset = () => {
           <button onClick={handleDeleteCycle} className="bg-red-500 text-white py-1 px-3 rounded-full text-sm">
             ลบข้อมูล
           </button>
-          {/* ปุ่มรีเซ็ต */}
-          <button onClick={handleReset} className="bg-gray-500 text-white py-1 px-3 rounded-full text-sm ml-2">
-            รีเซ็ต
-          </button>
         </div>
       )}
+
+      {/* ปุ่มรีเซ็ต */}
+      <div className="reset-button-container">
+        <button onClick={handleReset} className="bg-gray-500 text-white py-1 px-3 rounded-full text-sm ml-2">
+          รีเซ็ตข้อมูล
+        </button>
+      </div>
 
       <div className="daily-insights-container">
         <div className="daily-insights-title">ข้อมูลเชิงลึกประจำวันของฉัน - {selectedDate.toLocaleDateString('th-TH')}</div>
