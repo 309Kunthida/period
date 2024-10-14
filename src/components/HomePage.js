@@ -109,6 +109,25 @@ const HomePage = () => {
     return diffDays;
   };
 
+  // ฟังก์ชันลบวันที่บันทึก
+const handleDeleteCycle = () => {
+  const updatedCycleDates = cycleDates.filter((loggedDate) => loggedDate.getTime() !== selectedDate.getTime());
+  setCycleDates(updatedCycleDates); // ลบวันออกจากรายการ
+
+  // ถ้ามีวันที่บันทึกเหลืออยู่ ให้คำนวณจากวันที่บันทึกล่าสุด
+  if (updatedCycleDates.length > 0) {
+    const lastLoggedDate = updatedCycleDates[updatedCycleDates.length - 1];
+    const updatedNextPeriodDate = calculateNextPeriod(lastLoggedDate);
+    setNextPeriodDate(updatedNextPeriodDate);
+
+  } else {
+    setNextPeriodDate(null); // ถ้าไม่มีวันที่เหลือ ให้รีเซ็ต
+  }
+
+  setIsSaved(false); // รีเซ็ตสถานะการบันทึก
+};
+
+
   // ฟังก์ชันตรวจสอบว่าวันที่เลือกเป็นวันที่ประจำเดือนหรือไม่
   const isPeriodDay = predictedDates.some(predictedDate => predictedDate.toDateString() === selectedDate.toDateString());
 
@@ -142,9 +161,6 @@ const HomePage = () => {
     const year = date.getFullYear() + 543;
     return `${day} ${month} ${year}`;
   };
-
-  // ตรวจสอบว่าวันนี้อยู่ในช่วงของการมีประจำเดือนหรือไม่
-  const isInPeriod = currentDayOfPeriod <= 5 || cycleDates.length > 5; // อนุญาตให้เกินวันคาดการณ์ได้
 
   return (
     <div className="home-page-container">
@@ -193,6 +209,15 @@ const HomePage = () => {
           onPredictedDatesChange={setPredictedDates} 
         />
       </div>  
+
+      {/* ปุ่มลบข้อมูล */}
+      {isSaved && (
+        <div className="save-button-container">
+          <button onClick={handleDeleteCycle} className="bg-red-500 text-white py-1 px-3 rounded-full text-sm">
+            ลบข้อมูล
+          </button>
+        </div>
+      )}
 
       <div className="daily-insights-container">
         <div className="daily-insights-title">ข้อมูลเชิงลึกประจำวันของฉัน - {selectedDate.toLocaleDateString('th-TH')}</div>
