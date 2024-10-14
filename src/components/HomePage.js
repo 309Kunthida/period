@@ -127,6 +127,15 @@ const handleDeleteCycle = () => {
   setIsSaved(false); // รีเซ็ตสถานะการบันทึก
 };
 
+const handleReset = () => {
+  setCycleDates([]);         // รีเซ็ตวันที่บันทึก
+  setPredictedDates([]);     // รีเซ็ตวันที่คาดการณ์
+  setNextPeriodDate(null);   // รีเซ็ตวันประจำเดือนครั้งถัดไป
+  setIsSaved(false);         // รีเซ็ตสถานะการบันทึก
+  setCurrentDayOfPeriod(1);  // รีเซ็ตวันที่ในรอบเดือน
+};
+
+
 
   // ฟังก์ชันตรวจสอบว่าวันที่เลือกเป็นวันที่ประจำเดือนหรือไม่
   const isPeriodDay = predictedDates.some(predictedDate => predictedDate.toDateString() === selectedDate.toDateString());
@@ -215,6 +224,10 @@ const handleDeleteCycle = () => {
         <div className="save-button-container">
           <button onClick={handleDeleteCycle} className="bg-red-500 text-white py-1 px-3 rounded-full text-sm">
             ลบข้อมูล
+          </button>
+          {/* ปุ่มรีเซ็ต */}
+          <button onClick={handleReset} className="bg-gray-500 text-white py-1 px-3 rounded-full text-sm ml-2">
+            รีเซ็ต
           </button>
         </div>
       )}
