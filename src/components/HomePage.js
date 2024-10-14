@@ -12,31 +12,30 @@ const HomePage = () => {
   const [showSymptomForm, setShowSymptomForm] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedSymptoms, setSelectedSymptoms] = useState({ flow: '', mood: [], symptoms: [] });
-  const [currentDayOfPeriod, setCurrentDayOfPeriod] = useState(1); // สำหรับเก็บวันที่ในรอบประจำเดือน
+  const [currentDayOfPeriod, setCurrentDayOfPeriod] = useState(1);
   const [isSaved, setIsSaved] = useState(false);
-  const [isFirstDay, setIsFirstDay] = useState(true); // ตรวจสอบว่าเป็นวันแรกหรือไม่
-  const [nextPeriodDate, setNextPeriodDate] = useState(null); // บันทึกวันที่ประจำเดือนครั้งถัดไป
-  const [lastPeriodDay, setLastPeriodDay] = useState(null); // เก็บวันสุดท้ายของการเป็นประจำเดือน
+  const [isFirstDay, setIsFirstDay] = useState(true);
+  const [nextPeriodDate, setNextPeriodDate] = useState(null);
+  const [lastPeriodDay, setLastPeriodDay] = useState(null);
 
+  // ฟังก์ชันจัดการการเปลี่ยนแปลงวันที่
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
 
-// ฟังก์ชันจัดการการเปลี่ยนแปลงวันที่
-const handleDateChange = (newDate) => {
-  setSelectedDate(newDate);
+    // ตรวจสอบว่ามีการบันทึกวันที่นี้แล้วหรือไม่
+    const existingIndex = cycleDates.findIndex(
+      (loggedDate) => loggedDate.getTime() === newDate.getTime()
+    );
 
-  // ตรวจสอบว่ามีการบันทึกวันที่นี้แล้วหรือไม่
-  const existingIndex = cycleDates.findIndex(
-    (loggedDate) => loggedDate.getTime() === newDate.getTime()
-  );
-
-  if (existingIndex !== -1) {
-    // ถ้ามีวันที่นี้ใน cycleDates ให้แสดงข้อความวันที่ตามลำดับที่บันทึกไว้
-    setCurrentDayOfPeriod(existingIndex + 1);
-    setIsSaved(true); // แสดงข้อมูลว่าบันทึกแล้ว
-  } else {
-    // ถ้าไม่มีวันที่นี้ให้รีเซ็ตสถานะการบันทึก
-    setIsSaved(false);
-  }
-};
+    if (existingIndex !== -1) {
+      // ถ้ามีวันที่นี้ใน cycleDates ให้แสดงข้อความวันที่ตามลำดับที่บันทึกไว้
+      setCurrentDayOfPeriod(existingIndex + 1);
+      setIsSaved(true); // แสดงข้อมูลว่าบันทึกแล้ว
+    } else {
+      // ถ้าไม่มีวันที่นี้ให้รีเซ็ตสถานะการบันทึก
+      setIsSaved(false);
+    }
+  };
 
   // ฟังก์ชันสำหรับบันทึกวันที่ที่เลือก
   const handleLogCycle = (date) => {
@@ -46,35 +45,34 @@ const handleDateChange = (newDate) => {
       if (cycleDates.length > 0) {
         const lastLoggedDate = new Date(cycleDates[cycleDates.length - 1]);
         const diffDays = Math.ceil(Math.abs(date - lastLoggedDate) / (1000 * 60 * 60 * 24));
-    
-        if (diffDays > 1) {
-          // ถ้าระยะห่างมากกว่า 1 วัน ให้รีเซ็ตข้อมูล
-          setCycleDates([date]);
-          setCurrentDayOfPeriod(1);
-          setIsFirstDay(true);
-        } else {
+
+        if (diffDays === 1) {
           // ถ้าต่อเนื่อง ให้บันทึกวันใหม่และนับจำนวนวันเพิ่ม
           const updatedCycleDates = [...cycleDates, date];
           setCycleDates(updatedCycleDates);
-          setCurrentDayOfPeriod(updatedCycleDates.length);
-  
+          setCurrentDayOfPeriod(updatedCycleDates.length); // นับจำนวนวันทั้งหมดที่บันทึก
+
           // คำนวณวันที่ประจำเดือนครั้งถัดไปจากวันที่ล่าสุดที่บันทึก
           const calculatedNextPeriod = calculateNextPeriod(date);
           setNextPeriodDate(calculatedNextPeriod);
+        } else if (diffDays > 1) {
+          // ถ้าห่างจากวันสุดท้ายมากกว่า 1 วัน ให้รีเซ็ตข้อมูล
+          setCycleDates([date]);
+          setCurrentDayOfPeriod(1); // เริ่มนับใหม่
+          setIsFirstDay(true);
         }
       } else {
         // กรณีบันทึกวันแรก
         const updatedCycleDates = [date];
         setCycleDates(updatedCycleDates);
-        setCurrentDayOfPeriod(1);
+        setCurrentDayOfPeriod(1); // ตั้งค่าเป็นวันแรก
         setIsFirstDay(false);
         calculatePredictedDates(date); // คำนวณวันคาดการณ์ในครั้งแรกเท่านั้น
       }
       setIsSaved(true);
     }
   };
-  
-  
+
   // ฟังก์ชันคำนวณวันสุดท้ายของการมีประจำเดือน
   const calculateLastPeriodDay = (startDate) => {
     const periodLength = 5; // กำหนดให้ประจำเดือนอยู่ 5 วัน
@@ -84,12 +82,12 @@ const handleDateChange = (newDate) => {
   };
 
   // ฟังก์ชันคำนวณวันที่ประจำเดือนครั้งถัดไป
-const calculateNextPeriod = (startDate) => {
-  const cycleLength = 28; // รอบประจำเดือนเฉลี่ย 28 วัน
-  const nextPeriodDate = new Date(startDate); // นับจากวันที่ล่าสุดที่บันทึก
-  nextPeriodDate.setDate(startDate.getDate() + cycleLength); // บวก 28 วันเพื่อหาวันถัดไป
-  return nextPeriodDate;
-};
+  const calculateNextPeriod = (startDate) => {
+    const cycleLength = 28; // รอบประจำเดือนเฉลี่ย 28 วัน
+    const nextPeriodDate = new Date(startDate); // นับจากวันที่ล่าสุดที่บันทึก
+    nextPeriodDate.setDate(startDate.getDate() + cycleLength); // บวก 28 วันเพื่อหาวันถัดไป
+    return nextPeriodDate;
+  };
 
   // ฟังก์ชันคำนวณวันคาดการณ์ 5 วันหลังจากวันแรก
   const calculatePredictedDates = (startDate) => {
@@ -146,12 +144,12 @@ const calculateNextPeriod = (startDate) => {
   };
 
   // ตรวจสอบว่าวันนี้อยู่ในช่วงของการมีประจำเดือนหรือไม่
-  const isInPeriod = currentDayOfPeriod <= 5; // กำหนดให้ช่วงประจำเดือนอยู่ที่ 5 วัน
+  const isInPeriod = currentDayOfPeriod <= 5 || cycleDates.length > 5; // อนุญาตให้เกินวันคาดการณ์ได้
 
   return (
     <div className="home-page-container">
       <div className="period-info-container">
-        {isSaved && isInPeriod ? (
+        {isSaved ? (
           <>
             <div className="period-info-title period-info-title-small">
               ประจำเดือน:
