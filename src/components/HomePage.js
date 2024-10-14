@@ -105,7 +105,7 @@ const HomePage = () => {
     if (!nextPeriodDate) return null;
     const today = selectedDate || new Date(); // ใช้วันที่ที่เลือกจากผู้ใช้หรือวันที่ปัจจุบัน
     const diffTime = Math.abs(nextPeriodDate - today);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // แปลงเป็นจำนวนวัน
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) +1; // แปลงเป็นจำนวนวัน
     return diffDays;
   };
 
